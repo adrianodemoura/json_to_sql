@@ -1,0 +1,35 @@
+{
+    "name": "adrianodemoura/import_drupal_9",
+    "description": "Módulo para importar banco de dados do drupal 7 para drupal 9",
+    "type": "library",
+    "keywords": ["Drupal", "ImportDrupal9"],
+    "homepage": "https://github.com/adrianodemoura/json_to_sql",
+    "version": "1.0.1",
+    "license": "MIT",
+    "minimum-stability": "stable",
+
+    "authors": 
+    [{
+        "name": "Adriano Moura",
+        "email": "adrianodemoura@gmail.com"
+    }],
+
+
+    "autoload":
+    {
+        "psr-4":
+        {
+            "JsonToSql\\": "src/"
+        }
+    },
+
+    "support":
+    {
+        "issues": "https://github.com/adrianodemoura/json_to_sql/issues",
+        "source": "https://github.com/adrianodemoura/json_to_sql"
+    },
+
+    "require":
+    {
+    }
+}
