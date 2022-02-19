@@ -1,0 +1,9 @@
+=============================
+ajuda serviço create
+
+: Exemplo
+
+$ bin/create arquivo_json.json --ignore campo1,campo2, campo3  
+
+: Obs
+ Certifique-se que o arquivo_json.json existe no diretório "storage/json/".

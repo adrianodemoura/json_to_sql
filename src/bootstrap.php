@@ -25,10 +25,19 @@ if ( !defined('DIR_APP') )
 // diretório temporário
 if ( !defined('TMP') )
 {
-	if ( is_dir( DIR_APP . '/tmp' ) ) 
-		define( 'TMP', DIR_APP . '/tmp' );
+	if ( is_dir( DIR_APP . '/storage/tmp' ) ) 
+		define( 'TMP', DIR_APP . '/storage/tmp' );
 	else
 		define( 'TMP', '/tmp' );
+}
+
+// diretório storage
+if ( !defined('STORAGE') )
+{
+	if ( is_dir( DIR_APP . '/storage' ) ) 
+		define( 'STORAGE', DIR_APP . '/storage' );
+	else
+		define( 'STORAGE', '/storage' );
 }
 
 // autoload da aplicação

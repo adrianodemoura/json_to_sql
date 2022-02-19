@@ -12,21 +12,24 @@ class CreateController extends BaseController {
 
 	use TimePiece;
 
+	private function validaParams() {
+		if ( !isset( $this->params[1] ) ) {
+			throw new Exception( 'Informe o nome do arquivo JSON !' );
+		}
+
+		if ( !file_exists( STORAGE . "/tmp/json/" . explode(",", $this->params[1] )[0] ) ) {
+			throw new Exception( "Não foi possivel localizar o arquivo \"$jsonFile\", certifique-se se ele existe no diretório ".STORAGE . "/tmp/json" );
+		}
+	}
+
 	public function execute( ) {
 
 		$this->startTime();
 
-		$stringCampos = '';
+		$this->validaParams();
 
-		$jsonFile = explode(",", $this->params[1] )[0];
-		if (! file_exists( DIR_JSON_TO_SQL . DS . $jsonFile ) ) {
-			throw new Exception( "Não foi possivel localizar o arquivo \"$jsonFile\", verifique se ele existe no diretório raiz." );
-		}
-
-		$jsonArray = @json_decode( file_get_contents( DIR_JSON_TO_SQL . DS. $jsonFile ), true)['content'][0];
-		if ( empty( $jsonArray ) ) {
-			throw new Exception ( "a tag \"content\" não foi localizada no arquivo json !" );
-		}
+		$stringCampos 	= '';
+		$jsonArray 		= $this->getFileJsonToArray();
 
 		foreach( $jsonArray as $chave => $valorChave ) {
 
