@@ -15,7 +15,29 @@ class CreateController extends BaseController {
 
 	use TimePiece;
 
-	private function validaParams() {
+	public function execute() {
+
+		$this->startTime();
+
+		$this->setTableSchema();
+		
+		$fileOut  			= str_replace( ".json", ".sql", $this->params[1] );
+		$dirEscrita  		= "/storage/tmp/sql";		
+		$arrCampos 			= $this->getArrCampos();
+		$scriptSqlCreate 	= $this->getScriptSqlCreate();
+
+		if (! file_put_contents( DIR_APP . $dirEscrita.'/'.$fileOut, $scriptSqlCreate ) ) {
+			throw new Exception( MSG::get('0007', [$fileOut, $dirEscrita ] ) );
+		}
+
+		$this->addTime( 'SUCESSO', MSG::get('0006', [ $fileOut, $dirEscrita ] ) );		
+
+		$this->endTime();
+
+		$this->printTime();
+	}
+
+	private function setTableSchema() {
 		if ( !isset( $this->params[1] ) ) {
 			throw new Exception( 'Informe o nome do arquivo JSON !' );
 		}
@@ -38,18 +60,19 @@ class CreateController extends BaseController {
 		$this->TableSchema = new TableSchema( $config );
 	}
 
-	public function execute() {
+	private function getScriptSqlCreate() : string {
 
-		$this->startTime();
+		$scriptSqlCreate 	= "CREATE TABLE ".$this->TableSchema->getConfig('table_name')." (\n{campos}) {complement};\n";
+		
+		$scriptSqlCreate 	= str_replace( "{campos}", 	$this->TableSchema->getFields( $arrCampos ), $scriptSqlCreate );
+		$scriptSqlCreate 	= str_replace( "{complement}", $this->TableSchema->getComplementTable ( ) , $scriptSqlCreate );
 
-		$this->validaParams();
+		return $scriptSqlCreate;
+	}
 
-		$stringCampos 	= '';
+	private function getArrCampos() : array {
+		$arrCampos 		= [];
 		$jsonArray 		= $this->getFileJsonToArray();
-		$fileOut  		= str_replace( ".json", ".sql", $this->params[1] );
-		$dirEscrita  	= "/storage/tmp/sql";
-		$arrCampos  	= [];
-		$scriptSqlCreate= "CREATE TABLE ".$this->TableSchema->getConfig('table_name')." (\n{campos}) {complement};\n";
 
 		foreach( $jsonArray as $chave => $valorChave ) {
 
@@ -62,17 +85,7 @@ class CreateController extends BaseController {
 			}
 		}
 
-		$scriptSqlCreate = str_replace( "{campos}", 	$this->TableSchema->getFields( $arrCampos ), $scriptSqlCreate );
-		$scriptSqlCreate = str_replace( "{complement}", $this->TableSchema->getComplementTable ( ) , $scriptSqlCreate );
-
-		if (! file_put_contents( DIR_APP . $dirEscrita.'/'.$fileOut, $scriptSqlCreate ) ) {
-			throw new Exception( MSG::get('0007', [$fileOut, $dirEscrita ] ) );
-		}
-
-		$this->addTime( 'SUCESSO', MSG::get('0006', [ $fileOut, $dirEscrita ] ) );		
-
-		$this->endTime();
-		$this->printTime();
+		return $arrCampos;
 	}
 
 }
