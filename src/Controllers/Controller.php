@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace JsonToSql\Controllers;
+namespace App\Controllers;
 
-use JsonToSql\Controllers\Controller as BaseController;
+use App\Controllers\Controller as BaseController;
 
 class Controller {
 

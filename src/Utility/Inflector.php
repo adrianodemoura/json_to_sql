@@ -15,7 +15,7 @@
 
 declare(strict_types=1);
 
-namespace JsonToSql\Utility;
+namespace App\Utility;
 
 /**
  * Pluralize and singularize English words.

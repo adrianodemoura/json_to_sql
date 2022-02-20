@@ -19,7 +19,7 @@
     {
         "psr-4":
         {
-            "JsonToSql\\": "src/"
+            "App\\": "src/"
         }
     },
 

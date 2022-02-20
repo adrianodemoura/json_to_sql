@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace JsonToSql\Database\Schema;
+namespace App\Database\Schema;
 
-use JsonToSql\Database\Schema\Traits\Field;
+use App\Database\Schema\Traits\Field;
 
 class TableSchema {
 
@@ -20,24 +20,24 @@ class TableSchema {
 		$this->config = $config;
 	}
 
-	public function getConfig( String $name='' ) {
+	public function getConfig( String $name='' ) : string {
 		return $this->config[ $name ];
 	}
 
 	public function getFields( Array $campos=[] ) : string {
 
-		$fieldsCreate 		= '';
+		$fieldsCreate = '';
 
 		switch ( $this->getConfig('driver') ) {
 
 			case 'postgresql':
 			case 'postgres':
 			case 'postgre':
-				$fieldsCreate = static::getFieldsCreateMysql( $campos );
+				$fieldsCreate = static::getFieldsCreatePostgresql( $campos );
 				break;
 
 			case 'oracle':
-				$fieldsCreate = static::getFieldsCreateMysql( $campos );
+				$fieldsCreate = static::getFieldsCreateOracle( $campos );
 				break;
 
 			default:
@@ -106,6 +106,7 @@ class TableSchema {
 	}
 
 	private function getNameField( String $field='' ) : string {
+
 		return substr( $field, 0, 30 );
 	}
 	

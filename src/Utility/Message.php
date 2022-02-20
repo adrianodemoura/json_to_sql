@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace JsonToSql\Utility;
+namespace App\Utility;
 
 class Message {
 

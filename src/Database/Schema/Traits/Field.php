@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace JsonToSql\Database\Schema\Traits;
+namespace App\Database\Schema\Traits;
 
 trait Field {
 

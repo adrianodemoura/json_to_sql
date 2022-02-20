@@ -3,13 +3,16 @@ declare(strict_types=1);
 
 try
 {
-	define( 'DIR_JSON_TO_SQL', str_replace( ['/includes', '/bin', '/src', '/Core'], '', __DIR__ ) );
+	if ( !defined('DIR_APP') ) {
+		//define( 'DIR_APP', dirname(__DIR__) );
+		define( 'DIR_APP', './' );
+	}
 
-	include_once DIR_JSON_TO_SQL . '/src/bootstrap.php';
+	include_once DIR_APP . '/vendor/autoload.php';
 
-	include_once DIR_JSON_TO_SQL . '/vendor/autoload.php';
+	include_once DIR_APP . '/src/bootstrap.php';
 
-	include_once DIR_JSON_TO_SQL . '/src/global.php';
+	include_once DIR_APP . '/src/global.php';
 
 	if ( !isset( $_SERVER['argv'][0] ) ) {
 		throw new Exception( 'Informe o serviço desejado !' );
@@ -18,11 +21,11 @@ try
 	$controllerFile = ucfirst( strtolower( str_replace( ['bin/'], '', explode(",", $_SERVER['argv'][0] )[0] ) ) );
 
 	if ( $_SERVER['argv'][1] === '--help' ) {
-		include_once DIR_JSON_TO_SQL . '/docs/help/' . strtolower( $controllerFile ) . '.txt';
+		include_once APP_DIR . '/docs/help/' . strtolower( $controllerFile ) . '.txt';
 		throw new Exception ( 'ajuda', 300 );
 	}
 
-	$fullClass 	= "JsonToSql\\Controllers\\{$controllerFile}Controller";
+	$fullClass 	= "App\\Controllers\\{$controllerFile}Controller";
 
 	$Objeto     = new $fullClass ( );
 

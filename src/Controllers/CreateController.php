@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace JsonToSql\Controllers;
+namespace App\Controllers;
 
-use JsonToSql\Controllers\Controller as BaseController;
-use JsonToSql\Traits\TimePiece;
-use JsonToSql\Utility\Inflector;
-use JsonToSql\Utility\Message as MSG;
-use JsonToSql\Utility\SqlManage;
-use JsonToSql\Database\Schema\TableSchema;
+use App\Controllers\Controller as BaseController;
+use App\Traits\TimePiece;
+use App\Utility\Inflector;
+use App\Utility\Message as MSG;
+use App\Utility\SqlManage;
+use App\Database\Schema\TableSchema;
 use Exception;
 
 class CreateController extends BaseController {
@@ -23,7 +23,6 @@ class CreateController extends BaseController {
 		
 		$fileOut  			= str_replace( ".json", ".sql", $this->params[1] );
 		$dirEscrita  		= "/storage/tmp/sql";		
-		$arrCampos 			= $this->getArrCampos();
 		$scriptSqlCreate 	= $this->getScriptSqlCreate();
 
 		if (! file_put_contents( DIR_APP . $dirEscrita.'/'.$fileOut, $scriptSqlCreate ) ) {
@@ -49,10 +48,12 @@ class CreateController extends BaseController {
 		$config = [ 'id_auto'=>false, 'driver'=>'mysql', 'table_name'=> str_replace( ".json", "", $this->params[1] ) ];
 
 		foreach( $this->params as $_chave => $_valor ) {
-			if ( strpos( '--mysql=', $_valor) > -1 ) {
-				$config['driver'] = str_replace( '--mysql=', '', $_valor );
+
+			if ( strpos( $_valor, '--driver=' ) > -1 || strpos( $_valor, ' -d ' ) > -1 ) {
+				$config['driver'] = str_replace( ['--driver=', '--driver', ' -d ', ' --d ', '=', ' '], '', $_valor );
 			}
-			if ( strpos( '--id-auto', $_valor ) > -1 ) {
+
+			if ( strpos( $_valor, '--id-auto' ) > -1 ) {
 				$config['id_auto'] = true;
 			}
 		}
@@ -64,7 +65,8 @@ class CreateController extends BaseController {
 
 		$scriptSqlCreate 	= "CREATE TABLE ".$this->TableSchema->getConfig('table_name')." (\n{campos}) {complement};\n";
 		
-		$scriptSqlCreate 	= str_replace( "{campos}", 	$this->TableSchema->getFields( $arrCampos ), $scriptSqlCreate );
+		$scriptSqlCreate 	= str_replace( "{campos}", 	$this->TableSchema->getFields( $this->getArrCampos() ), $scriptSqlCreate );
+
 		$scriptSqlCreate 	= str_replace( "{complement}", $this->TableSchema->getComplementTable ( ) , $scriptSqlCreate );
 
 		return $scriptSqlCreate;

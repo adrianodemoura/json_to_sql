@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace JsonToSql\Traits;
+namespace App\Traits;
 
 trait TimePiece {
 	/**
