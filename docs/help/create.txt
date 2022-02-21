@@ -1,9 +1,28 @@
-=============================
-ajuda serviço create
+=========================
+Ajuda ao Serviço "create"
+
+: Anotações
+Este serviço converte um arquivo "JSON" para o script sql para criar uma tabela e seus relacionamentos.
+Toda tabela deverá conter o campo "ID" usado como primary key.
 
 : Exemplo
 
-$ bin/create arquivo_json.json --ignore campo1,campo2, campo3  
+$ bin/create arquivo_json.json [OPCOES]
+
+: Opções
+As opções podem ser:
+
+Ignorar alguns campos do json
+--ignore=campo1,campo2
+
+Definir o driver do banco
+--driver=[mysql|oracle|postresql]
+
+Definir o prefixo das tabelas
+--prefix-table-name=tab_
+
+Incluir comando para excluir tabela
+--drop-table=true
 
 : Obs
- Certifique-se que o arquivo_json.json existe no diretório "storage/json/".
+ Certifique-se que o arquivo_json.json existe no diretório "/storage/tmp/json/".

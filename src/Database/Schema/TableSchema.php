@@ -16,11 +16,10 @@ class TableSchema {
 
 	public function __construct( Array $config=[] ) {
 
-		$config['id_auto'] 				= isset( $config['id_auto'] ) 			? $config['id_auto'] 			: true;
+		$config['drop_table'] 			= isset( $config['drop_table'] ) 		? (bool) $config['drop_table'] 	: true;
 		$config['driver'] 				= isset( $config['driver'] ) 			? $config['driver'] 			: 'mysql';
 		$config['prefix_table_name'] 	= isset( $config['prefix_table_name'] ) ? $config['prefix_table_name'] 	: 'tb_';
 		$config['table_name'] 			= isset( $config['table_name'] ) 		? $config['table_name'] 		: '';
-		$config['drop_table'] 			= isset( $config['drop_table'] ) 		? $config['drop_table'] 		: true;
 
 		$this->config = $config;
 	}
@@ -37,7 +36,6 @@ class TableSchema {
 		switch ( $this->getConfig('driver') ) {
 
 			case 'postgresql':
-			case 'postgres':
 			case 'postgre':
 				$fieldsCreate = static::getFieldsCreatePostgresql( $campos );
 				break;
@@ -59,7 +57,6 @@ class TableSchema {
 		switch ( $this->config['driver'] ) {
 
 			case 'postgresql':
-			case 'postgres':
 			case 'postgre':
 				return "";
 				break;
@@ -102,9 +99,7 @@ class TableSchema {
 
 		$fieldsCreate = '';
 
-		if ( $this->config['id_auto'] === true ) {
-			$fieldsCreate .= "\t  id INT auto_increment NOT NULL\n";
-		}
+		$fieldsCreate .= "\t  id INT auto_increment NOT NULL";
 
 		foreach( $campos as $_key => $_field ) {
 
@@ -133,10 +128,7 @@ class TableSchema {
 			$fieldsCreate .= "\n\t, {$_fieldAssociation}_id INT(11)";
 		}
 
-		if ( $this->config['id_auto'] === true ) {
-			//$fieldsCreate .= "\n\t, CONSTRAINT ".$this->config['table_name']."_PK PRIMARY KEY (id)";
-			$fieldsCreate .= "\n\t, PRIMARY KEY (id)";
-		}
+		$fieldsCreate .= "\n\t, PRIMARY KEY (id)";
 
 		foreach( $this->fieldsAssociaton as $_fieldAssociation => $_chaveAssociation ) {
 			

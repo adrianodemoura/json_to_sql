@@ -51,16 +51,16 @@ class CreateController extends BaseController {
 
 	private function setTableSchema() {
 
-		$config = [ 'id_auto'=>false, 'driver'=>'mysql', 'table_name'=> str_replace( ".json", "", $this->params[1] ) ];
+		$config = [ 'table_name'=> str_replace( ".json", "", $this->params[1] ) ];
 
 		foreach( $this->params as $_chave => $_valor ) {
 
-			if ( strpos( $_valor, '--driver=' ) > -1 || strpos( $_valor, ' -d ' ) > -1 ) {
+			if ( strpos( $_valor, '--driver=' ) > -1 ) {
 				$config['driver'] = str_replace( ['--driver=', '--driver', ' -d ', ' --d ', '=', ' '], '', $_valor );
 			}
 
-			if ( strpos( $_valor, '--id-auto' ) > -1 ) {
-				$config['id_auto'] = true;
+			if ( strpos( $_valor, '--prefix-table-name=' ) > -1 ) {
+				$config['prefix_table_name'] = str_replace( ['--prefix-table-name=', '=', ' '], '', $_valor );
 			}
 		}
 
@@ -86,7 +86,7 @@ class CreateController extends BaseController {
 
 			$prefixTableLeft 	= $this->TableLeft->getConfig('prefix_table_name');
 
-			$tableRight 		= new TableSchema( [ 'table_name'=>$tableNameRight, 'id_auto'=>$this->TableLeft->getConfig('id_auto'), 'driver'=> $this->TableLeft->getConfig('driver'), 'prefix_table_name'=>$prefixTableLeft ] );
+			$tableRight 		= new TableSchema( [ 'table_name'=>$tableNameRight, 'driver'=> $this->TableLeft->getConfig('driver'), 'prefix_table_name'=>$prefixTableLeft ] );
 
 			$scriptTableRight 	= ( $tableRight->getConfig('drop_table') === true ) ? $tableRight->getDropTable().';' : '';
 
@@ -120,12 +120,16 @@ class CreateController extends BaseController {
 			}
 
 			$field = Inflector::underscore( $chave );
-			$field = substr( $field, 0, $paramsField->max_width );
-			if ( strpos( $field, '_' ) > -1 ) {
+
+			if ( strlen( $field ) >= $paramsField->max_width ) {
+
 				$field = Inflector::limitWord( $field, $paramsField->max_width_word, $paramsField->first_word_complete );
 			}
 
+			$field = substr( $field, 0, $paramsField->max_width );
+
 			if ( in_array( gettype($valorChave), ['array'] ) ) {
+
 				continue;
 			}
 
@@ -147,12 +151,16 @@ class CreateController extends BaseController {
 			}
 
 			$field = Inflector::underscore( $chave );
-			$field = substr( $field, 0, $paramsField->max_width );
-			if ( strpos( $field, '_' ) > -1 ) {
+
+			if ( strlen( $field ) >= $paramsField->max_width ) {
+
 				$field = Inflector::limitWord( $field, $paramsField->max_width_word, $paramsField->first_word_complete );
 			}
 
+			$field = substr( $field, 0, $paramsField->max_width );
+
 			if ( in_array( gettype($valorChave), ['array'] ) ) {
+
 				$this->TableLeft->setAssociation( $field, $chave );
 			}
 

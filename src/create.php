@@ -20,7 +20,7 @@ try
 	$controllerFile = ucfirst( strtolower( str_replace( ['bin/'], '', explode(",", $_SERVER['argv'][0] )[0] ) ) );
 
 	if ( $_SERVER['argv'][1] === '--help' ) {
-		include_once APP_DIR . '/docs/help/' . strtolower( $controllerFile ) . '.txt';
+		include_once DIR_APP . '/docs/help/' . strtolower( $controllerFile ) . '.txt';
 		throw new Exception ( 'ajuda', 300 );
 	}
 

@@ -28,19 +28,18 @@ class Controller {
 				continue; 
 			}
 
-			if (! empty( $this->config[ $stringConfig ] ) ) {
-				if ( strpos( $valor, '-') > -1 || strpos( $valor, '--' ) > -1 ) {
-					$stringConfig = '';
-				}
-			}
+			$arrValor = explode('=', $valor );
 
-			if ( strlen( trim ( $stringConfig ) ) ) {
-				$this->config[ $stringConfig ][] = $valor;
-			}
+			if ( isset($arrValor[1]) ) {
 
-			if ( strpos( $valor, '-') > -1 || strpos( $valor, '--' ) > -1 ) {
-				$stringConfig = str_replace( ['-','--'], '', $valor );
-				$this->config[ $stringConfig ] = [];
+				$stringConfig = str_replace( '--', '', $arrValor[0] );
+
+				$this->config[ $stringConfig ] = $arrValor[1];
+			
+				if ( in_array( $stringConfig, ['ignore'] ) ) {
+			
+					$this->config[ $stringConfig ] = explode( ',', $arrValor[1] );
+				} 
 			}
 		}
 	}
