@@ -1,30 +1,9 @@
 <?php
-/**
- * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
- * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
- *
- * Licensed under The MIT License
- * For full copyright and license information, please see the LICENSE.txt
- * Redistributions of files must retain the above copyright notice.
- *
- * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
- * @link          https://cakephp.org CakePHP(tm) Project
- * @since         0.2.9
- * @license       https://opensource.org/licenses/mit-license.php MIT License
- */
 
 declare(strict_types=1);
 
 namespace App\Utility;
 
-/**
- * Pluralize and singularize English words.
- *
- * Inflector pluralizes and singularizes English nouns.
- * Used by CakePHP's naming conventions throughout the framework.
- *
- * @link https://book.cakephp.org/3/en/core-libraries/inflector.html
- */
 class Inflector
 {
     /**
@@ -53,6 +32,13 @@ class Inflector
         '/us$/i' => 'uses',
         '/(alias)$/i' => '\1es',
         '/(ax|cris|test)is$/i' => '\1es',
+        
+        '/cao$/i' => 'coes',
+        '/is$/i' => 'ises',
+        '/al$/i' => 'ais',
+        '/dor$/i' => 'dores',
+        '/il$/i' => 'is',
+
         '/s$/' => 's',
         '/^$/' => '',
         '/$/' => 's',
@@ -509,6 +495,7 @@ class Inflector
             return static::$_cache['pluralize'][$word];
         }
 
+
         if (!isset(static::$_cache['irregular']['pluralize'])) {
             static::$_cache['irregular']['pluralize'] = '(?:' . implode('|', array_keys(static::$_irregular)) . ')';
         }
@@ -531,7 +518,9 @@ class Inflector
         }
 
         foreach (static::$_plural as $rule => $replacement) {
+
             if (preg_match($rule, $word)) {
+
                 static::$_cache['pluralize'][$word] = preg_replace($rule, $replacement, $word);
 
                 return static::$_cache['pluralize'][$word];
@@ -772,5 +761,32 @@ class Inflector
         );
 
         return preg_replace(array_keys($map), array_values($map), $string);
+    }
+
+    public static function limitWord( String $string, Int $width=4, Bool $jumpFirst=false ) : string {
+        $separator = '-';
+        $separator = ( strpos( $string, '-' ) > -1 ) ? '-' : $separator;
+        $separator = ( strpos( $string, '_' ) > -1 ) ? '_' : $separator;
+
+        $arrString = explode( $separator, $string );
+
+        $outString = '';
+
+        foreach( $arrString as $_key => $_value ) {
+
+            $slice = substr( $_value, 0, $width );
+
+            if ( $_key === 0 && $jumpFirst === true ) {
+                $slice = $_value;
+            }
+
+            $outString .= $slice;
+
+            if ( $_key < ( count($arrString)-1 ) ) {
+                $outString .= '_';
+            }
+        }
+
+        return $outString;
     }
 }

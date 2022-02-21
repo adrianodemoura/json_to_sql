@@ -4,7 +4,6 @@ declare(strict_types=1);
 try
 {
 	if ( !defined('DIR_APP') ) {
-		//define( 'DIR_APP', dirname(__DIR__) );
 		define( 'DIR_APP', './' );
 	}
 

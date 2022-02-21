@@ -25,9 +25,12 @@ if ( !function_exists('debug') )
         foreach($m as $_l => $_file)
         {
             $c++;
-            if ( !$trace ) { if ( $c < count($m) ) { continue; } }
-
+            if ( !$trace ) {
+                if ( $c <= count($m) ) { continue; } 
+            }
+            
             echo $_file.' (linha: '.$_l.')';
+
             if ( PHP_SAPI === 'cli' ) echo "\n";
         }
         echo print_r($d,true);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Database\Schema;
 
 use App\Database\Schema\Traits\Field;
+use App\Utility\Inflector;
 
 class TableSchema {
 
@@ -11,16 +12,21 @@ class TableSchema {
 
 	private $config = [];
 
+	private $fieldsAssociaton = [];
+
 	public function __construct( Array $config=[] ) {
 
-		$config['id_auto'] 		= isset( $config['id_auto'] ) 		? $config['id_auto'] 	: false;
-		$config['driver'] 		= isset( $config['driver'] ) 		? $config['driver'] 	: 'mysql';
-		$config['table_name'] 	= isset( $config['table_name'] ) 	? $config['table_name'] : '??';
+		$config['id_auto'] 				= isset( $config['id_auto'] ) 			? $config['id_auto'] 			: true;
+		$config['driver'] 				= isset( $config['driver'] ) 			? $config['driver'] 			: 'mysql';
+		$config['prefix_table_name'] 	= isset( $config['prefix_table_name'] ) ? $config['prefix_table_name'] 	: 'tb_';
+		$config['table_name'] 			= isset( $config['table_name'] ) 		? $config['table_name'] 		: '';
+		$config['drop_table'] 			= isset( $config['drop_table'] ) 		? $config['drop_table'] 		: true;
 
 		$this->config = $config;
 	}
 
-	public function getConfig( String $name='' ) : string {
+	public function getConfig( String $name='' ) {
+
 		return $this->config[ $name ];
 	}
 
@@ -67,15 +73,45 @@ class TableSchema {
 		}		
 	}
 
+	public function setAssociation ( String $field='', String $chave='' ) {
+
+		$this->fieldsAssociaton[$field] = $chave;
+	}
+
+	public function getDropTable( ) : string {
+		
+		switch ( $this->getConfig('driver') ) {
+			case 'oracle':
+				$string = "DROP TABLE ".$this->getConfig('prefix_table_name').$this->getConfig('table_name');
+				break;
+			
+			default:
+				$string = "DROP TABLE IF EXISTS ".$this->getConfig('prefix_table_name').$this->getConfig('table_name');
+				break;
+		}
+
+		return $string;
+	}
+
+	public function getAssociation () : array {
+
+		return $this->fieldsAssociaton;
+	}
+
 	private function getFieldsCreateMysql( Array $campos=[] ) : string {
 
 		$fieldsCreate = '';
 
 		if ( $this->config['id_auto'] === true ) {
-			$fieldsCreate .= "\tid INT auto_increment NOT NULL,\n";
+			$fieldsCreate .= "\t  id INT auto_increment NOT NULL\n";
 		}
 
 		foreach( $campos as $_key => $_field ) {
+
+			if ( in_array( $_field, $this->fieldsAssociaton) ) {
+				continue;
+			}
+
 			$field 		= $this->getNameField( $_field );
 			$width 		= $this->getWidth( $_field );
 			$type 		= $this->getType( $_field );
@@ -89,20 +125,31 @@ class TableSchema {
 
 			$type 		= ( $width >0 ) ? "$type($width)" : $type;
 
-			$fieldsCreate .= "\t$field $type $null $default";
+			$fieldsCreate .= "\n\t, $field $type $null $default";
+		}
 
-			if ( $_key >= 0 && $_key <= (count($campos)-2) ) {
-				$fieldsCreate .= ", ";
-			}
-
-			$fieldsCreate .= "\n";
+		foreach( $this->fieldsAssociaton as $_fieldAssociation => $_chaveAssociation ) {
+			
+			$fieldsCreate .= "\n\t, {$_fieldAssociation}_id INT(11)";
 		}
 
 		if ( $this->config['id_auto'] === true ) {
-			$fieldsCreate .= "\t, CONSTRAINT ".$this->config['table_name']."_PK PRIMARY KEY (id)\n";
+			//$fieldsCreate .= "\n\t, CONSTRAINT ".$this->config['table_name']."_PK PRIMARY KEY (id)";
+			$fieldsCreate .= "\n\t, PRIMARY KEY (id)";
 		}
 
-		return $fieldsCreate;
+		foreach( $this->fieldsAssociaton as $_fieldAssociation => $_chaveAssociation ) {
+			
+			$tableLeft  = Inflector::pluralize( $this->config['table_name'] );
+
+			$tableRight = Inflector::pluralize( Inflector::underscore( $_chaveAssociation ) );
+
+			$prefixTable= $this->config['prefix_table_name'];
+
+			$fieldsCreate .= "\n\t, CONSTRAINT {$tableLeft}__{$tableRight}_FK FOREIGN KEY ({$_fieldAssociation}_id) REFERENCES $prefixTable{$tableRight} (id)";
+		}
+
+		return $fieldsCreate."\n";
 	}
 
 	private function getNameField( String $field='' ) : string {
