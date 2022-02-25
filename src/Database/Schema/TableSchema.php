@@ -3,12 +3,13 @@ declare(strict_types=1);
 
 namespace App\Database\Schema;
 
-use App\Database\Schema\Traits\Field;
+use App\Database\Schema\Traits\FieldTrait;
 use App\Utility\Inflector;
+use Exception;
 
 class TableSchema {
 
-	use Field;
+	use FieldTrait;
 
 	private $config = [];
 
@@ -25,6 +26,10 @@ class TableSchema {
 	}
 
 	public function getConfig( String $name='' ) {
+
+		if (! isset($this->config[ $name ]) ) {
+			throw new Exception( "Configuração $name inválida para este Schema." );
+		}
 
 		return $this->config[ $name ];
 	}
@@ -113,10 +118,10 @@ class TableSchema {
 			$null 		= $this->getNull( $_field );
 			$default 	= $this->getDefault( $_field );
 
-			$default 	= (! empty($default) ) 	? "DEFAULT $default": '';
-			$type 		= (! empty($type) ) 	? $type: "VARCHAR";
-			$width 		= (! empty($width) ) 	? $width: 100;
-			$width 		= in_array( $type, ['date','datetime'] ) ? 0 : $width;
+			$default 	= (! empty($default) ) 	? "DEFAULT $default" 	: '';
+			$type 		= (! empty($type) ) 	? $type 				: "VARCHAR";
+			$width 		= (! empty($width) ) 	? $width 				: $this->getConfig( 'default_string_width' );
+			$width 		= in_array( $type, ['date','datetime'] ) ? 0 	: $width;
 
 			$type 		= ( $width >0 ) ? "$type($width)" : $type;
 

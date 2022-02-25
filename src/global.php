@@ -91,15 +91,17 @@ if ( !function_exists('gravaLog') )
      */
     function gravaLog($conteudo='', $nomeLog='log', $tipo='w')
     {
-        $fp = fopen( TMP . DS . $nomeLog.'.log', $tipo);
+        $fp = fopen( TMP . DS . $nomeLog . '.log', $tipo );
 
         ob_start();
 
-        echo print_r($conteudo, true);
+        echo print_r( $conteudo, true );
 
         $saida = ob_get_clean();
-        fwrite($fp, $saida.PHP_EOL);
-        fclose($fp);
+
+        fwrite( $fp, $saida . PHP_EOL );
+
+        fclose( $fp );
     }
 }
 
@@ -108,6 +110,7 @@ if ( !function_exists('success') )
     function success( string $texto='' )
     {
         echo print_r( $texto, true);
+
         if ( PHP_SAPI === 'cli' ) echo "\n";
     }
 }
@@ -117,6 +120,19 @@ if ( !function_exists('error') )
     function error( string $texto='' )
     {
         echo print_r( $texto, true);
+
         if ( PHP_SAPI === 'cli' ) echo "\n";
     }
+}
+
+if (! function_exists( 'br2' ) ) {
+
+    function br2() {
+
+        if ( PHP_SAPI === 'cli' ) {
+
+            echo "\n";
+        }
+    }
+
 }
