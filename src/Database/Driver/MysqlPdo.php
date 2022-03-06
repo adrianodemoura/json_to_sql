@@ -12,7 +12,7 @@ class MysqlPdo extends PDO {
 	 *
 	 * @var 	mixed
 	 */
-	protected $result 	= null;
+	protected $result 		= null;
 
 	/**
 	 * contador de transcações
@@ -24,19 +24,19 @@ class MysqlPdo extends PDO {
 	/**
 	 * Caminho e nome do log
 	 */
-	private $nameLog = '';
+	private $nameLog 		= '';
 
 	/**
 	 */
-	private $lastaTypeSql = '';
+	private $lastaTypeSql 	= '';
 
 	/**
 	 */
-	private $dirLog = 'sql';
+	private $dirLog 		= 'sql';
 
 	/**
 	 */
-	private $beginStart = false;
+	private $beginStart 	= false;
 
 	/**
 	 * Método start
@@ -52,6 +52,10 @@ class MysqlPdo extends PDO {
 		parent::__construct( $dsn, $configDb['username'], $configDb['password'], $configDb['flags'] );
 
 		$this->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+	}
+
+	public function __destruct( ) {
+
 	}
 
 	/**

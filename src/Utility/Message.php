@@ -9,7 +9,8 @@ class Message {
         '0005'  => 'Não foi possivel localizar o arquivo "{1}", certifique-se que se encontra no diretório "{2}"',
         '0006'  => 'Arquivo "{1}" gerado com sucesso em "{2}"',
         '0007'  => 'Não foi possivel escrever o arquivo "{1}" em "{2}"',
-        '0008'  => 'Tabela "{1}"" populada com dados fake com sucesso.'
+        '0008'  => 'Tabela "{1}"" populada com dados fake com sucesso.',
+        '0009'  => '"Configuração {1} inválida para este Schema."'
     ];
 
     public static function get ( $code, $params=[] ) : string {

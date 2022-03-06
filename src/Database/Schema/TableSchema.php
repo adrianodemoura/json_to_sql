@@ -5,6 +5,7 @@ namespace App\Database\Schema;
 
 use App\Database\Schema\Traits\FieldTrait;
 use App\Utility\Inflector;
+use App\Utility\Message as MSG;
 use Exception;
 
 class TableSchema {
@@ -27,8 +28,9 @@ class TableSchema {
 
 	public function getConfig( String $name='' ) {
 
-		if (! isset($this->config[ $name ]) ) {
-			throw new Exception( "Configuração $name inválida para este Schema." );
+		if (! isset( $this->config[ $name ] ) ) {
+
+			throw new Exception( MSG::get( '0009', [ $name ] ) );
 		}
 
 		return $this->config[ $name ];
@@ -87,7 +89,7 @@ class TableSchema {
 				$string = "DROP TABLE ".$this->getConfig('prefix_table_name').$this->getConfig('table_name');
 				break;
 			
-			default:
+			default: // mysql, mariaDB, PostreqSql
 				$string = "DROP TABLE IF EXISTS ".$this->getConfig('prefix_table_name').$this->getConfig('table_name');
 				break;
 		}
@@ -151,7 +153,7 @@ class TableSchema {
 
 	private function getNameField( String $field='' ) : string {
 
-		return substr( $field, 0, 30 );
+		return substr( $field, 0, $this->getConfig( 'max_width' ) );
 	}
 	
 }

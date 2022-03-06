@@ -16,16 +16,20 @@ class CreateController extends BaseController {
 
 	use TimePiece;
 
-	public function execute() {
+	private $tableRight2 = [];
+
+	public function execute( ) {
 
 		$this->validate();
 
 		$this->startTime();
 
 		$this->setTableSchema();
-		
-		$fileOut  			= str_replace( ".json", ".sql", $this->params[1] );
+
+		$fileOut  			= $this->params[1] . '.sql';
+
 		$dirEscrita  		= "/storage/tmp/sql";		
+
 		$scriptSqlCreate 	= $this->getScriptSqlCreate();
 
 		if (! file_put_contents( DIR_APP . $dirEscrita.'/'.$fileOut, $scriptSqlCreate ) ) {
@@ -33,12 +37,16 @@ class CreateController extends BaseController {
 			throw new Exception( MSG::get('0007', [$fileOut, $dirEscrita ] ) );
 		}
 
-		$ConfigDb 	= (object) Configure::read( 'database' );
-		$script 	= "mysql -u{$ConfigDb->user} -p{$ConfigDb->password} {$ConfigDb->database} < " . DIR_APP . "/storage/tmp/sql/socios.sql";
+		$ConfigApp  = (object) Configure::read( 'app' );
 
-		$exe = exec( $script );
+		if ( $ConfigApp->force_create === true ) {
 
-		dump( $exe );
+			$ConfigDb 	= (object) Configure::read( 'database' );
+
+			$script 	= "mysql -u{$ConfigDb->username} -p{$ConfigDb->password} {$ConfigDb->database} < " . DIR_APP . "/storage/tmp/sql/{$this->params[1]}.sql";
+
+			$exe = exec( $script );
+		}
 
 		$this->addTime( 'SUCESSO', MSG::get('0006', [ $fileOut, $dirEscrita ] ) );		
 
@@ -47,19 +55,21 @@ class CreateController extends BaseController {
 		$this->printTime();
 	}
 
-	private function validate() {
+	private function validate( ) {
 		if ( !isset( $this->params[1] ) ) {
 
 			throw new Exception( 'Informe o nome do arquivo JSON !' );
 		}
 
-		if ( !file_exists( STORAGE . "/tmp/json/" . explode(",", $this->params[1] )[0] ) ) {
+		$this->params[1] = explode(",", $this->params[1] )[0];
 
-			throw new Exception( MSG::get( '0005', [ $this->params[1], "/tmp/json" ] ) );
+		if ( !file_exists( STORAGE . "/tmp/json/" . explode(",", $this->params[1] )[0] . '.json' ) ) {
+
+			throw new Exception( MSG::get( '0005', [ $this->params[1] . '.json' , "/tmp/json" ] ) );
 		}
 	}
 
-	private function setTableSchema() {
+	private function setTableSchema( ) {
 
 		$DefaultField  		= (object) Configure::read( 'params_fields' );
 
@@ -76,52 +86,102 @@ class CreateController extends BaseController {
 			}
 		}
 
+		$config['max_width'] 		= $DefaultField->max_width;
+		$config['max_width_word'] 	= $DefaultField->max_width_word;
+		$config['ignore'] 			= $DefaultField->ignore;
+
 		$this->TableSchemaLeft = new TableSchema( $config );
 	}
 
 	private function getScriptSqlCreate() : string {
 
-		$DefaultField  		= (object) Configure::read( 'params_fields' );
+		$tableLeft 				=  $this->TableSchemaLeft->getConfig('prefix_table_name') . $this->TableSchemaLeft->getConfig('table_name');
 
-		$tableLeft 			=  $this->TableSchemaLeft->getConfig('prefix_table_name') . $this->TableSchemaLeft->getConfig('table_name');
+		$sqlDropTable 			= ( $this->TableSchemaLeft->getConfig('drop_table') === true ) ? $this->TableSchemaLeft->getDropTable().";\n\n" : "";
 
-		$scriptSqlCreate 	= "\nCREATE TABLE {$tableLeft} (\n{campos}) {complement};\n";
+		$scriptSqlCreate 		= "CREATE TABLE {$tableLeft} (\n{campos}) {complement};\n";
 
-		$scriptSqlCreate 	= str_replace( "{campos}", 	$this->TableSchemaLeft->getFields( $this->getArrFieldsLeft() ), $scriptSqlCreate );
+		$scriptSqlCreate 		= str_replace( "{campos}", 	$this->TableSchemaLeft->getFields( $this->getFieldsLeft() ), $scriptSqlCreate );
 
-		$scriptSqlCreate 	= str_replace( "{complement}", $this->TableSchemaLeft->getComplementTable ( ) , $scriptSqlCreate );
+		$scriptSqlCreate 		= str_replace( "{complement}", $this->TableSchemaLeft->getComplementTable ( ) , $scriptSqlCreate );
 
-		$scriptSqlAssociations = '';
+		$scriptSqlAssociations = "";
 
 		foreach( $this->TableSchemaLeft->getAssociation() as $_fieldAssociation => $_fieldChave ) {
 
-			$tableNameRight		= Inflector::pluralize( Inflector::underscore( $_fieldChave ) );
+			$scriptSqlAssociations .= $this->getSqlCreateTableLeft( $_fieldAssociation, $_fieldChave );
+		}
+
+		foreach( $this->tableRight2 as $_chave => $_arr ) {
+			$DefaultField  		= (object) Configure::read( 'params_fields' );
 
 			$prefixTableLeft 	= $this->TableSchemaLeft->getConfig('prefix_table_name');
 
-			$TableSchemaRight	= new TableSchema( [ 'table_name'=>$tableNameRight, 'driver'=> $this->TableSchemaLeft->getConfig('driver'), 'prefix_table_name'=>$prefixTableLeft, 'default_string_width'=>$DefaultField->default_string_width ] );
+			$fieldName  		= str_replace( "_id", "", $_arr['field'] );
 
-			$scriptTableRight 	= ( $TableSchemaRight->getConfig('drop_table') === true ) ? $TableSchemaRight->getDropTable().';' : '';
+			$tableNameRight 	= $_arr['table'];
 
-			$scriptTableRight   .= "\nCREATE TABLE {$prefixTableLeft}{$tableNameRight} (\n{campos}\n) {complement};\n";
+			$TableSchemaRight	= new TableSchema( [ 'table_name'=>$tableNameRight, 'driver'=> $this->TableSchemaLeft->getConfig('driver'), 'prefix_table_name'=>$prefixTableLeft, 'default_string_width'=>$DefaultField->default_string_width, 'max_width'=>$DefaultField->max_width ] );
 
-			$scriptTableRight 	= str_replace( "{campos}", $TableSchemaRight->getFields( $this->getArrFieldsRight( $_fieldChave ) ), $scriptTableRight );
-
-			$scriptTableRight 	= str_replace( "{complement}", $TableSchemaRight->getComplementTable ( ) , $scriptTableRight );
-
-			$scriptSqlAssociations .= $scriptTableRight."\n";
+			$sqlDropTable .= ( $TableSchemaRight->getConfig('drop_table') === true ) ? $TableSchemaRight->getDropTable().";\n\n" : "";
 		}
 
-		$scriptFull = $scriptSqlAssociations.$scriptSqlCreate;
-
-		if ( $this->TableSchemaLeft->getConfig('drop_table') === true ) {
-			$scriptFull = $this->TableSchemaLeft->getDropTable() . ";\n" . $scriptFull;
-		}
+		$scriptFull = "{$sqlDropTable}{$scriptSqlAssociations}{$scriptSqlCreate}";
 
 		return $scriptFull;
 	}
 
-	private function getArrFieldsLeft( ) : array {
+	private function getSqlCreateTableLeft( String $fieldsAssociaton='', String $fieldChave='' ) : string {
+
+		$DefaultField  		= (object) Configure::read( 'params_fields' );
+
+		$tableNameRight		= Inflector::pluralize( Inflector::underscore( $fieldChave ) );
+
+		$prefixTableLeft 	= $this->TableSchemaLeft->getConfig('prefix_table_name');
+
+		$TableSchemaRight	= new TableSchema( [ 'table_name'=>$tableNameRight, 'driver'=> $this->TableSchemaLeft->getConfig('driver'), 'prefix_table_name'=>$prefixTableLeft, 'default_string_width'=>$DefaultField->default_string_width, 'max_width'=>$DefaultField->max_width ] );
+
+		$sqlDropTable 		= ( $TableSchemaRight->getConfig('drop_table') === true ) ? $TableSchemaRight->getDropTable().";\n" : "";
+
+		$fieldsTableRight  	= $TableSchemaRight->getFields( $this->getFieldsRight( $fieldChave, $this->getFileJsonToArray()[$fieldChave] ) );
+
+		$sqlCreateTableRight2 = "";
+
+		if ( isset( $this->tableRight2[ $fieldChave ] ) ) {
+
+			$this->tableRight2[ $fieldChave ]['table'] = $tableNameRight;
+
+			$chave2  			= $this->tableRight2[ $fieldChave ]['chave'];
+
+			$fieldName2  		= $this->tableRight2[ $fieldChave ]['field'];
+
+			$tableNameRight2 	= str_replace( "_id", "", $fieldName2 );
+
+			$TableSchemaRight2	= new TableSchema( [ 'table_name'=>$tableNameRight2, 'driver'=> $this->TableSchemaLeft->getConfig('driver'), 'prefix_table_name'=>$prefixTableLeft, 'default_string_width'=>$DefaultField->default_string_width, 'max_width'=>$DefaultField->max_width ] );
+
+			$fieldsTableRight   = str_replace("{$fieldName2} VARCHAR(200) NULL", "{$fieldName2} INT(11) NULL", $fieldsTableRight );
+
+			$fieldsTableRight2  = $TableSchemaRight2->getFields( $this->getFieldsRight( $fieldName2, $this->tableRight2[ $fieldChave ]['chave'] ) );
+
+			$fieldsTableRight .= "\n\t,CONSTRAINT {$tableNameRight}__{$tableNameRight2}_FK FOREIGN KEY ({$fieldName2}) REFERENCES {$prefixTableLeft}{$tableNameRight2} (id)";
+
+			$sqlDropTable2 		= ( $TableSchemaRight2->getConfig('drop_table') === true ) ? $TableSchemaRight2->getDropTable().";\n" : "";
+
+			$sqlCreateTableRight2 = "{$sqlDropTable2}CREATE table {$prefixTableLeft}{$tableNameRight2} (\n{$fieldsTableRight2}\n) {$TableSchemaRight->getComplementTable( )};\n\n\n";
+
+			$sqlDropTable 		= "";
+		}
+
+		$scriptTableRight   = "{$sqlCreateTableRight2}{$sqlDropTable}CREATE TABLE {$prefixTableLeft}{$tableNameRight} (\n{campos}\n) {complement};\n";
+
+		$scriptTableRight 	= str_replace( "{campos}",     $fieldsTableRight, $scriptTableRight );
+
+		$scriptTableRight 	= str_replace( "{complement}", $TableSchemaRight->getComplementTable ( ) , $scriptTableRight );
+
+		return (! empty( $scriptTableRight ) ) ? $scriptTableRight."\n" : "";
+	}
+
+	private function getFieldsLeft( ) : array {
 		$arrCampos 		= [];
 
 		$jsonArray 		= $this->getFileJsonToArray();
@@ -130,7 +190,8 @@ class CreateController extends BaseController {
 
 		foreach( $jsonArray as $chave => $valorChave ) {
 
-			if ( in_array( $chave, $this->config['ignore'] ) ) {
+			if ( in_array( $chave, $DefaultField->ignore ) ) {
+
 				continue;
 			}
 
@@ -146,6 +207,8 @@ class CreateController extends BaseController {
 			if ( in_array( gettype($valorChave), ['array'] ) ) {
 
 				$this->TableSchemaLeft->setAssociation( $field, $chave );
+
+				continue;
 			}
 
 			$arrCampos[] = $field;
@@ -154,20 +217,26 @@ class CreateController extends BaseController {
 		return $arrCampos;
 	}
 
-	private function getArrFieldsRight( String $tagName='' ) : array {
+	private function getFieldsRight( String $tagName='', Array $jsonArray=[] ) : array {
+
 		$arrCampos 		= [];
 
-		$jsonArray 		= $this->getFileJsonToArray()[$tagName];
+		if ( isset( $jsonArray[0] ) ) {
+
+			$jsonArray = $jsonArray[0];
+		}
 
 		$DefaultField  	= (object) Configure::read( 'params_fields' );
 
 		foreach( $jsonArray as $chave => $valorChave ) {
 
-			if ( in_array( $chave, $this->config['ignore'] ) ) {
+			if ( in_array( $chave, $DefaultField->ignore ) ) {
+
 				continue;
 			}
 
 			$field = Inflector::underscore( $chave );
+
 
 			if ( strlen( $field ) >= $DefaultField->max_width ) {
 
@@ -178,7 +247,9 @@ class CreateController extends BaseController {
 
 			if ( in_array( gettype($valorChave), ['array'] ) ) {
 
-				continue;
+				$field .= "_id";
+
+				$this->tableRight2[ $tagName ] = ['field'=> $field, 'chave'=> $valorChave ];
 			}
 
 			$arrCampos[] = $field;

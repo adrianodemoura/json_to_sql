@@ -45,11 +45,12 @@ class Controller {
 	}
 
 	protected function getFileJsonToArray() {
-		$jsonFile = explode(",", $this->params[1] )[0];
-		
+		$jsonFile = explode(",", $this->params[1] )[0] . '.json';
+	
 		$jsonArray = @json_decode( file_get_contents( STORAGE . "/tmp/json/$jsonFile" ), true)['content'][0];
 		
 		if ( empty( $jsonArray ) ) {
+
 			throw new Exception ( "a tag \"content\" não foi localizada no arquivo " . STORAGE . "/tmp/json/$jsonFile" );
 		}
 

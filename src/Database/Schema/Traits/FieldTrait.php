@@ -17,6 +17,8 @@ trait FieldTrait {
 		'telefone' 			=> [ 'type'=>'int', 		'width'=>12 ], //55 31 1234-4321
 		
 		'data_nascimento' 	=> [ 'type'=>'date', 		'width'=>10 ],
+		'data_inicio'		=> [ 'type'=>'date', 		'width'=>10 ],
+		'data_termino'		=> [ 'type'=>'date', 		'width'=>10 ],
 		'data_criacao' 		=> [ 'type'=>'datetime', 	'width'=>18 ],
 		'data_modificao'	=> [ 'type'=>'datetime', 	'width'=>18 ],
 	];
