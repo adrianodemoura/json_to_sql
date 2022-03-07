@@ -21,8 +21,11 @@ trait FieldTrait {
 		'data_entrada' 		=> [ 'type'=>'date', 		'width'=>10 ],
 		'data_inicio'		=> [ 'type'=>'date', 		'width'=>10 ],
 		'data_termino'		=> [ 'type'=>'date', 		'width'=>10 ],
+
 		'data_criacao' 		=> [ 'type'=>'datetime', 	'width'=>18 ],
 		'data_modificao'	=> [ 'type'=>'datetime', 	'width'=>18 ],
+		'criado_em'			=> [ 'type'=>'datetime', 	'width'=>18 ],
+		'modificado_em'		=> [ 'type'=>'datetime', 	'width'=>18 ],
 	];
 
 	public function getType( String $field='' ) {
@@ -37,7 +40,14 @@ trait FieldTrait {
 
 	public function getDefault( String $field='' ) {
 
-		return isset( $this->_fields[ $field ]['default'] ) ? $this->_fields[ $field ]['default'] : '';
+		if ( in_array($field, ['criado_em', 'modificado_em', 'created_at', 'update_at'] ) ) {
+
+			return $this->getDefaultDateTie();
+		}
+
+		return isset( $this->_fields[ $field ]['default'] ) 
+			? $this->_fields[ $field ]['default'] 
+			: '';
 	}
 
 	public function getNull( String $field='' ) : string {
@@ -46,6 +56,11 @@ trait FieldTrait {
 	}
 
 	public function getFakeValue( Array $propField=[], Int $count=0 ) {
+
+		if ( in_array($propField['name'], ['criado_em', 'modificado_em', 'created_at', 'update_at'] ) ) {
+
+			return;
+		}
 
 		$typeField = $propField['type'];
 

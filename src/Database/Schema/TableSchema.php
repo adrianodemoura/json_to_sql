@@ -102,6 +102,18 @@ class TableSchema {
 		return $this->fieldsAssociaton;
 	}
 
+	public function getDefaultDateTie() : string {
+		switch ( $this->getConfig('driver') ) {
+			case 'oracle':
+				return "CURRENT_TIME";
+				break;
+
+			default:
+				return "curtime()";
+				break;
+		}
+	}
+
 	private function getFieldsCreateMysql( Array $campos=[] ) : string {
 
 		$fieldsCreate = '';

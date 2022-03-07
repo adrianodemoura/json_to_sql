@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Controllers\Controller as BaseController;
+use App\Utility\Message as MSG;
+use Exception;
 
 class Controller {
 
@@ -48,10 +50,13 @@ class Controller {
 		$jsonFile = explode(",", $this->params[1] )[0] . '.json';
 	
 		$jsonArray = @json_decode( file_get_contents( STORAGE . "/tmp/json/$jsonFile" ), true)['content'][0];
+		$jsonArray = empty( $jsonArray ) 
+			? @json_decode( file_get_contents( STORAGE . "/tmp/json/$jsonFile" ), true) 
+			: $jsonArray;
 		
 		if ( empty( $jsonArray ) ) {
 
-			throw new Exception ( "a tag \"content\" não foi localizada no arquivo " . STORAGE . "/tmp/json/$jsonFile" );
+			throw new Exception ( MSG::get('0011',[ STORAGE . "/tmp/json/{$jsonFile}"]) );
 		}
 
 		return $jsonArray;
