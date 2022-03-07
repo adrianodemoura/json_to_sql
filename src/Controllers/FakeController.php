@@ -26,13 +26,11 @@ class FakeController extends BaseController {
 
 		$this->Mysql = new Mysql( Configure::read( 'database' ) );
 
-		$this->Mysql->setLogName( "sql/".$this->params[1] );
-
 		$this->Mysql->begin();
 
 		try {
 
-			if (! $this->Mysql->exists( $this->params[1])  ) {
+			if (! $this->Mysql->tableExist( $this->params[1])  ) {
 
 				throw new Exception ( MSG::get('0010', [ $this->params[1] ] ) );
 			}
@@ -172,12 +170,6 @@ class FakeController extends BaseController {
 
 		$sortKey = rand( 0, count( $faixaId )-1 );
 
-		if (! isset( $faixaId[ $sortKey ] ) ) {
-			dump( $faixaId );
-			dump( $sortKey );
-			dd('fudeu');
-		}
-
-		return (int) $faixaId[ $sortKey  ];
+		return (int) $faixaId[ $sortKey ]['id'];
 	}
 }

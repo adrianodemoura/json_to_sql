@@ -58,6 +58,8 @@ class MysqlPdo extends PDO {
 		parent::__construct( $dsn, $configDb['username'], $configDb['password'], $configDb['flags'] );
 
 		$this->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+
+		$this->nameLog = str_replace("-", "_", date('Y-m-d') );		
 	}
 
 	public function __destruct( ) {
@@ -90,7 +92,7 @@ class MysqlPdo extends PDO {
 
         	$nameFile 	.= (! empty($this->lastaTypeSql) ) ? '_'.$this->lastaTypeSql : '';
 
-			gravaLog( date("Y-m-d H:i:s") . " COMMIT", $dirLogSql . 'sql_'.$nameFile, 'a+' );
+			gravaLog( date("Y-m-d H:i:s") . " COMMIT", $dirLogSql . $nameFile, 'a+' );
 		}
 
 		$this->beginStart = false;
@@ -113,7 +115,7 @@ class MysqlPdo extends PDO {
 
         	$nameFile 	.= (! empty($this->lastaTypeSql) ) ? '_'.$this->lastaTypeSql : '';
 
-        	gravaLog( date("Y-m-d H:i:s") . " ROLLBACK" . (! empty($erro)? " ( $erro )" : '' ) , $dirLogSql . 'sql_'.$nameFile, 'a+' );
+        	gravaLog( date("Y-m-d H:i:s") . " ROLLBACK" . (! empty($erro)? " ( $erro )" : '' ) , $dirLogSql . $nameFile, 'a+' );
         }
 
         $this->beginStart = false;
@@ -128,34 +130,16 @@ class MysqlPdo extends PDO {
         return false;
 	}
 
-	public function exists( String $tableName='' ) {
+	public function tableExist( String $tableName='' ) {
+
 		$sql = "SELECT COUNT(*) as totalReg FROM information_schema.tables WHERE table_schema = '".$this->configDb['database']."' AND table_name = '{$tableName}'";
 
-		if ( @parent::query( $sql )->fetchAll( PDO::FETCH_ASSOC )[0]['totalReg'] ) {
+		if ( @parent::query( $sql )->fetchAll( PDO::FETCH_ASSOC )[0]['totalReg'] > 0 ) {
 
 			return true;
 		}
 
 		return false;
-	}
-
-	/**
-	 * Configura o nome do log
-	 * 
-	 * @var string
-	 */
-	public function setLogName( string $nameLog='' ) {
-
-		if ( strpos( $nameLog, "/") ) {
-			$arrNameLog = explode( "/", $nameLog );
-
-			$this->dirLog 	= $arrNameLog[0] . "/";
-
-			$this->nameLog = $arrNameLog[1];
-		} else {
-
-			$this->nameLog = $nameLog;
-		}
 	}
 
 	/**
@@ -171,16 +155,16 @@ class MysqlPdo extends PDO {
 
 			$dirLogSql = !empty($this->dirLog) ? $this->dirLog.'/' :'';
 
-			if ( substr($query,0,6) == 'UPDATE' )   { $nameFile = "sql_".$this->nameLog."_update"; $this->lastaTypeSql='update'; }
+			/*if ( substr($query,0,6) == 'UPDATE' )   { $nameFile = "sql_".$this->nameLog."_update"; $this->lastaTypeSql='update'; }
 			if ( substr($query,0,6) == 'INSERT' )   { $nameFile = "sql_".$this->nameLog."_insert"; $this->lastaTypeSql='insert'; }
 			if ( substr($query,0,6) == 'DELETE' )   { $nameFile = "sql_".$this->nameLog."_delete"; $this->lastaTypeSql='delete'; }
 			if ( substr($query,0,8) == 'TRUNCATE' ) { $nameFile = "sql_".$this->nameLog."_truncate"; $this->lastaTypeSql='truncate'; }
-			if ( substr($query,0,8) == 'DESCRIBE' ) { $nameFile = "sql_".$this->nameLog."_describe"; $this->lastaTypeSql='describe'; }
+			if ( substr($query,0,8) == 'DESCRIBE' ) { $nameFile = "sql_".$this->nameLog."_describe"; $this->lastaTypeSql='describe'; }*/
 
 			if ( $this->beginStart ) {
-				gravaLog( "-------------------------", $dirLogSql . $nameFile, 'a+' );
+				gravaLog( "----------------------------", $dirLogSql . $nameFile, 'a+' );
 				gravaLog( date("Y-m-d H:i:s") . " BEGIN", $dirLogSql . $nameFile, 'a+' );
-				gravaLog( " ", $dirLogSql . $nameFile, 'a+' );
+				gravaLog( "                            ", $dirLogSql . $nameFile, 'a+' );
 				$this->beginStart = false;
 			}
 

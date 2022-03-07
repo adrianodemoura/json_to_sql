@@ -7,11 +7,11 @@ trait FieldTrait {
 
 	private $_fields = [
 		'ativo'				=> [ 'type'=>'int', 		'width'=>1, 'default'=>1, 'null'=>'NOT NULL'  ],
+		'aniversario' 		=> [ 'type'=>'int', 		'width'=>4  ],
 		'codigo' 			=> [ 'type'=>'int', 		'width'=>11 ],
-		'cpf' 				=> [ 'type'=>'int', 		'width'=>11 ],
-		'nire' 				=> [ 'type'=>'int', 		'width'=>11 ],
-		'cnpj' 				=> [ 'type'=>'int', 		'width'=>14 ],
-		'aniversario' 		=> [ 'type'=>'int', 		'width'=>14 ],
+		'nire' 				=> [ 'type'=>'float', 		'width'=>11, 'min'=>10000000000, 'max'=>99999999999 ],
+		'cpf' 				=> [ 'type'=>'float', 		'width'=>11, 'min'=>10000000000, 'max'=>99999999999 ],
+		'cnpj' 				=> [ 'type'=>'float', 		'width'=>14, 'min'=>10000000000000, 'max'=>99999999999999 ],
 
 		'celular' 			=> [ 'type'=>'int', 		'width'=>13 ], //55 31 91234-4321
 		'telefone' 			=> [ 'type'=>'int', 		'width'=>12 ], //55 31 1234-4321
@@ -47,24 +47,45 @@ trait FieldTrait {
 
 	public function getFakeValue( Array $propField=[], Int $count=0 ) {
 
-		if ( in_array( $propField['type'], ['date'] ) ) {
+		$typeField = $propField['type'];
+
+		if ( strpos( $typeField, "(" ) > -1 ) {
+
+			$typeField = substr( $typeField, 0, strpos( $typeField, "(" ) );
+		}
+
+
+		if ( in_array( $typeField, ['date'] ) ) {
 
 			$date = strtotime( '-'. rand( 0, 80 ) .' year' );
 
 			return "'" . date('Y-m-d', $date ) . "'";
 		}
 
-		if ( in_array( $propField['type'], ['datetime', 'timestamp'] ) ) {
+		if ( in_array( $typeField, ['datetime', 'timestamp'] ) ) {
 
 			return "'". date('Y-m-d H:i:s') . "'";
 		}
 
-		if ( strpos( $propField['type'], 'int') > -1 ) {
+		if ( in_array( $typeField, [ 'int', 'float', 'double', 'number', 'numeric' ] ) ) {
 
-			return rand( 1000, 1100 );
+			$a = 1000;
+			$b = 1100;
+
+			if ( isset( $this->_fields[ $propField['name'] ]['min'] ) ) {
+
+				$a = $this->_fields[ $propField['name'] ]['min'];
+			}
+
+			if ( isset( $this->_fields[ $propField['name'] ]['max'] ) ) {
+
+				$b = $this->_fields[ $propField['name'] ]['max'];
+			}
+
+			return rand( $a, $b );
 		}
 
-		if ( strpos( $propField['type'], 'varchar' ) > -1 ) {
+		if ( strpos( $typeField, 'varchar' ) > -1 ) {
 
 			$width = (int) str_replace( [ 'varchar2', 'varchar(', ')' ], '', $propField['type'] );
 
