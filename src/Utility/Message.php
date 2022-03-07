@@ -10,7 +10,8 @@ class Message {
         '0006'  => 'Arquivo "{1}" gerado com sucesso em "{2}"',
         '0007'  => 'Não foi possivel escrever o arquivo "{1}" em "{2}"',
         '0008'  => 'Tabela "{1}"" populada com dados fake com sucesso.',
-        '0009'  => '"Configuração {1} inválida para este Schema."'
+        '0009'  => '"Configuração {1} inválida para este Schema."',
+        '0010'  => 'Tabela "{1}" inexistente.'
     ];
 
     public static function get ( $code, $params=[] ) : string {

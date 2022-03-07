@@ -28,7 +28,26 @@ class FakeController extends BaseController {
 
 		$this->Mysql->setLogName( "sql/".$this->params[1] );
 
-		$this->populate( $this->params[1], (int) $this->params[2] );
+		$this->Mysql->begin();
+
+		try {
+
+			if (! $this->Mysql->exists( $this->params[1])  ) {
+
+				throw new Exception ( MSG::get('0010', [ $this->params[1] ] ) );
+			}
+
+			$this->populatePk( $this->params[1], (int) rand(5,10) );
+			
+			$this->populate( $this->params[1], (int) $this->params[2] );
+
+			$this->Mysql->commit();
+		} catch (Exception $e) {
+			
+			$this->Mysql->rollback( $e->getMessage() );
+
+			throw new Exception( $e->getMessage() );
+		}
 
 		$this->addTime( 'SUCESSO', MSG::get('0008', [ $this->params[1] ] ) );
 
@@ -49,35 +68,91 @@ class FakeController extends BaseController {
 		}
 	}
 
-	private function populate( String $tableName='', Int $quantity=0 ) : Bool {
-		
-		$describe 	= $this->Mysql->describeTable( $this->params[1] );
+	private function populatePk ( String $tableNameIgnore='', Int $quantity=0 ) {
+
+		$databaseName 	= @Configure::read( 'database' )['database'];
+
+		$allTablesPk 	= $this->Mysql->query( "SELECT * FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA='{$databaseName}' AND  CONSTRAINT_TYPE = 'PRIMARY KEY'" )->toArray();
+
+		$listTables  	= [];
+
+		$tablesLast  	= [];
+
+		foreach( $allTablesPk as $_l => $_arrProp ) {
+			
+			if ( $_arrProp['TABLE_NAME'] === $tableNameIgnore ) {
+
+				continue;
+			}
+
+			$propriedadesTabela = $this->Mysql->describeTable( $_arrProp['TABLE_NAME'] );
+
+			foreach( $propriedadesTabela as $_field => $_propField ) {
+
+				if ( $_propField['key'] == 'MUL' ) {
+
+					$tablesLast[] = $_arrProp['TABLE_NAME'];
+
+					continue;
+				}
+			}
+
+			if (! in_array( $_arrProp['TABLE_NAME'] , $tablesLast ) ) {
+	
+				$listTables[] = $_arrProp['TABLE_NAME'];
+			}
+		}
+
+		$listTables = array_merge( $listTables, $tablesLast );
+
+		foreach( $listTables as $_l => $_tableName ) {
+
+			$totalTable = @$this->Mysql->query( "SELECT COUNT(1) as totalReg FROM {$_tableName}" )->toArray()[0]['totalReg'];
+
+			if (! $totalTable ) {
+
+				$this->populate( $_tableName, $quantity );
+			}
+		}
+	}
+
+	private function populate( String $tableName='', Int $quantity=0 ) {
+
+		$describe 	= $this->Mysql->describeTable( $tableName );
 
 		$arrSqls  	= [];
 
 		for( $i=0; $i<$quantity; $i++ ) {
 
-			$sql = "INSERT INTO " . $this->params[1] . " SET ";
+			$sql = "INSERT INTO {$tableName} SET ";
 
 			$l = 0;
 			foreach( $describe as $_field => $_arrProp ) {
 
 
 				if ( isset( $_arrProp['extra'] ) && $_arrProp['extra'] == 'auto_increment' ) {
+
 					continue;
 				}
 
 				if ( isset( $_arrProp['default'] ) && !empty( $_arrProp['default'] ) ) {
+
 					continue;
 				}
 
+				$value = $this->getFakeValue( $_arrProp, ($i+1) );
+
 				if ( isset( $_arrProp['key'] ) &&  $_arrProp['key'] == 'MUL' ) {
-					continue;
+
+					$prefixTable = @Configure::read('database')['prefix_table_name'];
+					$prefixTable = ( $prefixTable ) ? $prefixTable : '';
+
+					$value = $this->getIdAssociation(  $_arrProp['referenced_table_name'], $_arrProp['referenced_column_name'] );
 				}
 
 				if ( $l > 0 ) { $sql .= ", "; }
 
-				$sql .= $_field . " = " . $this->getFakeValue( $_arrProp, ($i+1) );
+				$sql .= $_field . " = " . $value;
 
 				$l++;
 			}
@@ -85,22 +160,24 @@ class FakeController extends BaseController {
 			$arrSqls[] = $sql;
 		}
 
-		$this->Mysql->begin();
+		foreach( $arrSqls as $_key => $_sql ) {
 
-		try {
-			foreach( $arrSqls as $_key => $_sql ) {
+			$this->Mysql->query( $_sql );
+		}
+	}
 
-				$this->Mysql->query( $_sql );
-			}
+	private function getIdAssociation( String $tableName, String $fieldName ) : int {
 
-			$this->Mysql->commit();
-		} catch (Exception $e) {
+		$faixaId = $this->Mysql->query( "SELECT {$fieldName} FROM {$tableName} ORDER BY {$fieldName}" )->toArray();
 
-			$this->Mysql->rollback( $e->getMessage() );
+		$sortKey = rand( 0, count( $faixaId )-1 );
 
-			throw new Exception( $e->getMessage() );
+		if (! isset( $faixaId[ $sortKey ] ) ) {
+			dump( $faixaId );
+			dump( $sortKey );
+			dd('fudeu');
 		}
 
-		return true;
+		return (int) $faixaId[ $sortKey  ];
 	}
 }

@@ -1,0 +1,13 @@
+=========================
+Ajuda ao Serviço "fake"
+
+: Exemplo
+
+$ bin/create tabela	[OPCOES]
+
+: Opções
+As opções podem ser:
+
+: Obs
+Certifique-se que a tabela existe no banco de dados.
+

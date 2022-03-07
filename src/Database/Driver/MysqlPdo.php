@@ -39,6 +39,10 @@ class MysqlPdo extends PDO {
 	private $beginStart 	= false;
 
 	/**
+	 */
+	private $configDb 		= [];
+
+	/**
 	 * Método start
 	 *
 	 * @return 	void
@@ -48,6 +52,8 @@ class MysqlPdo extends PDO {
 		$dsn = "mysql:host=" . $configDb['host'] . ";dbname=" . $configDb['database'];
 
 		$configDb['flags'] = isset( $configDb['flags'] ) ? $configDb['flags'] : [];
+
+		$this->configDb = $configDb;
 
 		parent::__construct( $dsn, $configDb['username'], $configDb['password'], $configDb['flags'] );
 
@@ -120,6 +126,17 @@ class MysqlPdo extends PDO {
 
         $this->transactionCounter = 0;
         return false;
+	}
+
+	public function exists( String $tableName='' ) {
+		$sql = "SELECT COUNT(*) as totalReg FROM information_schema.tables WHERE table_schema = '".$this->configDb['database']."' AND table_name = '{$tableName}'";
+
+		if ( @parent::query( $sql )->fetchAll( PDO::FETCH_ASSOC )[0]['totalReg'] ) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -219,6 +236,20 @@ class MysqlPdo extends PDO {
 			$fields[ $fieldName ]['key'] 	= @$_arrProp['Key'];
 			$fields[ $fieldName ]['default']= @$_arrProp['Default'];
 			$fields[ $fieldName ]['extra']  = @$_arrProp['Extra'];
+
+			if ( $fields[ $fieldName ]['key'] == 'MUL' ) {
+
+				$_propAssoc = parent::query( "SELECT TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME 
+					FROM information_schema.KEY_COLUMN_USAGE 
+					WHERE 
+					    TABLE_NAME   = '{$table}'
+					AND COLUMN_NAME  = '{$fieldName}'
+					AND REFERENCED_TABLE_NAME IS NOT NULL;" )
+				->fetchAll( PDO::FETCH_ASSOC );
+
+				$fields[ $fieldName ]['referenced_table_name']  = @$_propAssoc[0]['REFERENCED_TABLE_NAME'];
+				$fields[ $fieldName ]['referenced_column_name'] = @$_propAssoc[0]['REFERENCED_COLUMN_NAME'];
+			}
 		}
 
 		return $fields;

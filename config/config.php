@@ -20,7 +20,8 @@ return [
 		'password' 				=> 'jsonsql_67',
 		'database' 				=> 'jsonsql_bd',
 		'host' 					=> 'localhost',
-		'driver' 				=> 'mysql'
+		'driver' 				=> 'mysql',
+		'prefix_table_name' 	=> 'tb_'
 	]
 
 ];
