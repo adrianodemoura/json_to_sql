@@ -67,7 +67,7 @@ trait FieldTrait {
 			return "'". date('Y-m-d H:i:s') . "'";
 		}
 
-		if ( in_array( $typeField, [ 'int', 'float', 'double', 'number', 'numeric' ] ) ) {
+		if ( in_array( strtolower($typeField), [ 'int', 'float', 'double', 'number', 'numeric' ] ) ) {
 
 			$a = 1000;
 			$b = 1100;

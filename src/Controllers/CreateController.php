@@ -135,6 +135,8 @@ class CreateController extends BaseController {
 
 		$DefaultField  		= (object) Configure::read( 'params_fields' );
 
+		$widthField  		= $DefaultField->default_string_width;
+
 		$tableNameRight		= Inflector::pluralize( Inflector::underscore( $fieldChave ) );
 
 		$prefixTableLeft 	= $this->TableSchemaLeft->getConfig('prefix_table_name');
@@ -159,7 +161,7 @@ class CreateController extends BaseController {
 
 			$TableSchemaRight2	= new TableSchema( [ 'table_name'=>$tableNameRight2, 'driver'=> $this->TableSchemaLeft->getConfig('driver'), 'prefix_table_name'=>$prefixTableLeft, 'default_string_width'=>$DefaultField->default_string_width, 'max_width'=>$DefaultField->max_width ] );
 
-			$fieldsTableRight   = str_replace("{$fieldName2} VARCHAR(200) NULL", "{$fieldName2} INT(11) NULL", $fieldsTableRight );
+			$fieldsTableRight   = str_replace("{$fieldName2} VARCHAR($widthField) NULL", "{$fieldName2} INT(11) NULL", $fieldsTableRight );
 
 			$fieldsTableRight2  = $TableSchemaRight2->getFields( $this->getFieldsRight( $fieldName2, $this->tableRight2[ $fieldChave ]['chave'] ) );
 
