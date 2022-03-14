@@ -63,7 +63,12 @@ class MysqlPdo extends PDO {
 	}
 
 	public function __destruct( ) {
+		$this->connection = null;
+	}
 
+	public function get_error() {
+
+		$this->connection->errorInfo();
 	}
 
 	/**
@@ -83,7 +88,7 @@ class MysqlPdo extends PDO {
 	 *
 	 * @return mixed
 	 */
-	public function commit() {
+	public function commit() : bool {
 		if ( $this->nameLog ) {
 
         	$nameFile 	= $this->nameLog;
@@ -105,7 +110,7 @@ class MysqlPdo extends PDO {
 	 *
 	 * @return mixed
 	 */
-	public function rollback( String $erro='' ) {
+	public function rollback( String $erro='' ) : bool {
 
         if ( $this->nameLog ) {
         	
@@ -147,19 +152,13 @@ class MysqlPdo extends PDO {
 	 * 
 	 * @param 	string 	$query 	Query a ser executada.
 	 */
-	public function query( string $query='' ) {
+	public function query( string $query='' ): bool {
 
 		if ( $this->nameLog ) {
 
 			$nameFile = $this->nameLog;
 
 			$dirLogSql = !empty($this->dirLog) ? $this->dirLog.'/' :'';
-
-			/*if ( substr($query,0,6) == 'UPDATE' )   { $nameFile = "sql_".$this->nameLog."_update"; $this->lastaTypeSql='update'; }
-			if ( substr($query,0,6) == 'INSERT' )   { $nameFile = "sql_".$this->nameLog."_insert"; $this->lastaTypeSql='insert'; }
-			if ( substr($query,0,6) == 'DELETE' )   { $nameFile = "sql_".$this->nameLog."_delete"; $this->lastaTypeSql='delete'; }
-			if ( substr($query,0,8) == 'TRUNCATE' ) { $nameFile = "sql_".$this->nameLog."_truncate"; $this->lastaTypeSql='truncate'; }
-			if ( substr($query,0,8) == 'DESCRIBE' ) { $nameFile = "sql_".$this->nameLog."_describe"; $this->lastaTypeSql='describe'; }*/
 
 			if ( $this->beginStart ) {
 				gravaLog( "----------------------------", $dirLogSql . $nameFile, 'a+' );

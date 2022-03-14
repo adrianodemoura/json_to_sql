@@ -10,7 +10,7 @@ use Exception;
 
 class TableSchema {
 
-	use FieldTrait;
+    use FieldTrait;
 
 	private $config = [];
 
@@ -34,30 +34,6 @@ class TableSchema {
 		}
 
 		return $this->config[ $name ];
-	}
-
-	public function getFields( Array $campos=[] ) : string {
-
-		$fieldsCreate = '';
-
-		switch ( $this->getConfig('driver') ) {
-
-			case 'postgresql':
-			case 'postgre':
-				$fieldsCreate = static::getFieldsCreatePostgresql( $campos );
-				break;
-
-			case 'oracle':
-				$fieldsCreate = static::getFieldsCreateOracle( $campos );
-				break;
-
-			default:
-				$fieldsCreate = static::getFieldsCreateMysql( $campos );
-		}
-
-		$fieldsCreate = str_replace( "{tableName}", strtoupper( $this->getConfig('table_name') ), $fieldsCreate );
-
-		return $fieldsCreate;
 	}
 
 	public function getComplementTable ( ) : string {
@@ -114,7 +90,7 @@ class TableSchema {
 		}
 	}
 
-	private function getFieldsCreateMysql( Array $campos=[] ) : string {
+	private function getFields( Array $campos=[] ) : string {
 
 		$fieldsCreate = '';
 
@@ -160,7 +136,7 @@ class TableSchema {
 			$fieldsCreate .= "\n\t, CONSTRAINT {$tableLeft}__{$tableRight}_FK FOREIGN KEY ({$_fieldAssociation}_id) REFERENCES $prefixTable{$tableRight} (id)";
 		}
 
-		return $fieldsCreate."\n";
+		return str_replace("{tableName}", strtoupper($this->getConfig('table_name')), $fieldsCreate."\n" );
 	}
 
 	private function getNameField( String $field='' ) : string {

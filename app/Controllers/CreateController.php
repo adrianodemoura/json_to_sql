@@ -93,7 +93,7 @@ class CreateController extends BaseController {
 		$this->TableSchemaLeft = new TableSchema( $config );
 	}
 
-	private function getScriptSqlCreate() : string {
+	private function getScriptSqlCreate( ) : string {
 
 		$tableLeft 				=  $this->TableSchemaLeft->getConfig('prefix_table_name') . $this->TableSchemaLeft->getConfig('table_name');
 
